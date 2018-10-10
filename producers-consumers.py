@@ -1,33 +1,36 @@
 '''
 NAME: producers-consumers.py
 AUTHOR: Andrew Meijer V00805554
-In this implementation of Producer-consumer
-I use the python Condition class found here:
-https://docs.python.org/2/library/threading.html#condition-objects
+This program is based on the threading code found here:
+https://www.tutorialspoint.com/python3/python_multithreading.htm
 
 '''
 
+#!/usr/bin/python3
+import queue
 import threading
-import asyncio
-import random
+import time
 
-# Global Variables
-q = []
-cv = asyncio.Condition()
+exitFlag = 0
+startFlag = 0
 
 # Pseudocode for Producer from Textbook:
 # 1 event = waitForEvent()  - "select a random number"
 # 2 mutex.wait()            - "enter critical section"
 # 3 buffer.add(event)       - "produce the random number"
-# 4 items.signal()          - "new item is on queue"
-# 5 mutex.signal()          - "exit critical section"
-def producer():
-    nums = range(100)
-    num = random.choice(nums)
-    with cv:
-        q.append(num)
-        cv.notify()
-    return
+# 4 mutex.signal()          - "exit critical section"
+# 5 items.signal()          - "new item is on queue"
+class producer (threading.Thread):
+   def run(self):
+      print ("Starting producer thread.")
+      num = input("Produce a number: ")
+      # this flag keeps the program running until an event occurs
+      global startFlag
+      startFlag = 1
+      mutex.acquire()
+      buffer.put(num)
+      mutex.release()
+      print ("Exiting producer thread.")
 
 # Pseudocode for Consumer from Textbook:
 # 1 items.wait()            -
@@ -35,52 +38,40 @@ def producer():
 # 3 event = buffer.get()    -
 # 4 mutex.signal()          -
 # 5 event.process()         -
-def consumer():
-    with cv:
-        while not q:
-            cv.wait()
-        num = q.pop(0)
-    print(num)
-    return
-
-
-
-
-#!/usr/bin/python3
-
-import threading
-import time
-
-exitFlag = 0
-q = []
-
-class producer (threading.Thread):
-   def __init__(self, threadID, name, counter):
-      threading.Thread.__init__(self)
-      self.threadID = threadID
-      self.name = name
-      self.counter = counter
-   def run(self):
-      print ("Starting " + self.name)
-      print_time(self.name, self.counter, 5)
-      print ("Exiting " + self.name)
-
 class consumer (threading.Thread):
-    def __init__(self, threadID, name, counter):
-        threading.Thread.__init__(self)
-        self.threadID = threadID
-        self.name = name
-        self.counter = counter
     def run(self):
+        print ("Starting consumer thread.")
+        while not exitFlag:
+            mutex.acquire()
+            if not buffer.empty():
+                num = buffer.get()
+                mutex.release()
+                print("Consumed: ", num)
+            else:
+                mutex.release()
+                # give time for other possible threads
+                time.sleep(1)
+        print ("Exit flag is called. Consumption is over.")
 
+# Main
+mutex = threading.Lock()
+buffer = queue.Queue(10)
 
 # Create new threads
-prod = myThread(1, "Thread-1", 1)
-cons = myThread(2, "Thread-2", 2)
+prod = producer()
+cons = consumer()
 
 # Start new Threads
 prod.start()
 cons.start()
+
+# wait until queue is empty
+# nts: this is perhaps unnecessary with only one consumer
+while not buffer.empty() or not startFlag:
+    pass
+
+exitFlag = 1
+
 prod.join()
 cons.join()
 print ("Exiting Main Thread")
