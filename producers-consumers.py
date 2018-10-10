@@ -74,4 +74,4 @@ exitFlag = 1
 
 prod.join()
 cons.join()
-print ("Exiting Main Thread")
+print ("Exiting Main Thread.")
