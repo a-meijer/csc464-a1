@@ -11,7 +11,7 @@
 //  I use MinGW on Windows10 and compile with the following command:
 //      gcc -pthread producers-consumers.c
 
-
+#include <windows.h>
 #include <stdio.h>
 #include <pthread.h>
 #include <semaphore.h>
@@ -87,5 +87,4 @@ int main()
     sem_destroy(&items);
     sem_destroy(&mutex);
     printf("Exiting Main Thread.\n");
-    return 0;
 }

@@ -5,11 +5,12 @@ This program is based on the threading code found here:
 https://www.tutorialspoint.com/python3/python_multithreading.htm
 
 '''
-
 #!/usr/bin/python3
 import queue
 import threading
 import time
+import os
+import psutil
 
 exitFlag = 0
 startFlag = 0
@@ -74,4 +75,11 @@ exitFlag = 1
 
 prod.join()
 cons.join()
+
 print ("Exiting Main Thread.")
+# memory usage report:
+# nts this is not counted in the comprehensibility measurements
+pid = os.getpid()
+ps = psutil.Process(pid)
+mr = ps.memory_info()
+print("Bytes used: ", mr.rss)
